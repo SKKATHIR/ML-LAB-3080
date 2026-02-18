@@ -1,0 +1,53 @@
+# Bayesian Network - Student Performance Prediction
+
+# Dataset
+data = [
+    ("High", "High", "Yes"),
+    ("High", "Low", "Yes"),
+    ("Low", "High", "Yes"),
+    ("Low", "Low", "No"),
+    ("High", "High", "Yes"),
+    ("Low", "Low", "No")
+]
+
+total = len(data)
+
+# Count Prior Probabilities
+pass_yes = sum(1 for row in data if row[2] == "Yes")
+pass_no = sum(1 for row in data if row[2] == "No")
+
+P_pass_yes = pass_yes / total
+P_pass_no = pass_no / total
+
+# Conditional Probabilities
+def conditional_prob(feature_index, feature_value, pass_value):
+    subset = [row for row in data if row[2] == pass_value]
+    count = sum(1 for row in subset if row[feature_index] == feature_value)
+    return count / len(subset)
+
+# Example Inference:
+# Given StudyHours=High, Attendance=High
+
+P_study_high_given_yes = conditional_prob(0, "High", "Yes")
+P_att_high_given_yes = conditional_prob(1, "High", "Yes")
+
+P_study_high_given_no = conditional_prob(0, "High", "No")
+P_att_high_given_no = conditional_prob(1, "High", "No")
+
+# Posterior (Proportional)
+posterior_yes = P_pass_yes * P_study_high_given_yes * P_att_high_given_yes
+posterior_no = P_pass_no * P_study_high_given_no * P_att_high_given_no
+
+print("P(Pass=Yes | Data) ∝", posterior_yes)
+print("P(Pass=No | Data) ∝", posterior_no)
+
+# Final Prediction
+if posterior_yes > posterior_no:
+    print("Prediction: Pass = Yes")
+else:
+    print("Prediction: Pass = No")
+Output:
+
+P(Pass=Yes | Data) ∝ 0.375
+P(Pass=No | Data) ∝ 0.0
+Prediction: Pass = Yes
