@@ -1,0 +1,37 @@
+import pandas as pd
+data = {
+    'Free':   ['Yes','Yes','No','No','No','Yes'],
+    'Win':    ['Yes','No','Yes','No','No','No'],
+    'Offer':  ['Yes','Yes','No','Yes','No','No'],
+    'Spam':   ['Yes','Yes','Yes','No','No','No']
+}
+df = pd.DataFrame(data)
+df = df.replace({'Yes':1, 'No':0})
+print("Training Data:\n")
+print(df)
+total = len(df)
+spam_yes = len(df[df['Spam'] == 1])
+spam_no = len(df[df['Spam'] == 0])
+P_spam = spam_yes / total
+P_notspam = spam_no / total
+print("\nPrior Probabilities:")
+print("P(Spam) =", P_spam)
+print("P(Not Spam) =", P_notspam)
+def likelihood(feature, value, spam_value):
+    subset = df[df['Spam'] == spam_value]
+    count = len(subset)
+    return len(subset[subset[feature] == value]) / count
+new_email = {'Free':1, 'Win':1, 'Offer':0}
+P_yes = P_spam
+for feature in ['Free','Win','Offer']:
+    P_yes *= likelihood(feature, new_email[feature], 1)
+P_no = P_notspam
+for feature in ['Free','Win','Offer']:
+    P_no *= likelihood(feature, new_email[feature], 0)
+print("\nPosterior Probabilities:")
+print("P(Spam | X) =", P_yes)
+print("P(Not Spam | X) =", P_no)
+if P_yes > P_no:
+    print("\nPrediction: Email is SPAM")
+else:
+    print("\nPrediction: Email is NOT SPAM")
