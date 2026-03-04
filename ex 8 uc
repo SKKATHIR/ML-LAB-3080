@@ -1,0 +1,36 @@
+import numpy as np
+from sklearn.neighbors import KNeighborsClassifier
+
+# Training Data
+# Features: [Study Hours, Attendance]
+X = np.array([
+    [2, 30],
+    [3, 35],
+    [5, 60],
+    [6, 65],
+    [8, 80],
+    [1, 25]
+])
+
+# Target: 0 = Fail, 1 = Pass
+y = np.array([0, 0, 1, 1, 1, 0])
+
+# Create KNN Model (k=3)
+model = KNeighborsClassifier(n_neighbors=3)
+
+# Train the model
+model.fit(X, y)
+
+# New Student Data
+new_student = np.array([[4, 50]])
+
+# Prediction
+prediction = model.predict(new_student)
+
+# Output
+if prediction[0] == 1:
+    print("Prediction: PASS")
+else:
+    print("Prediction: FAIL")
+OUTPUT
+prediction : pass
