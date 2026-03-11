@@ -1,63 +1,67 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 
+# Kernel function
 def kernel(point, X, k):
-    m, n = np.shape(X)
-    weights = np.mat(np.eye(m))
+    m = X.shape[0]
+    weights = np.eye(m)
     
     for j in range(m):
         diff = point - X[j]
-        weights[j, j] = np.exp(diff * diff.T / (-2.0 * k**2))
+        weights[j, j] = np.exp(np.dot(diff, diff) / (-2 * k * k))
         
     return weights
 
 
+# Local weight calculation
 def localWeight(point, X, y, k):
-    wei = kernel(point, X, k)
-    W = (X.T * (wei * X)).I * (X.T * (wei * y.T))
-    return W
+    W = kernel(point, X, k)
+    XT_W = X.T @ W
+    theta = np.linalg.inv(XT_W @ X) @ (XT_W @ y)
+    return theta
 
 
+# Locally Weighted Regression
 def localWeightRegression(X, y, k):
-    m, n = np.shape(X)
+    m = X.shape[0]
     ypred = np.zeros(m)
     
     for i in range(m):
-        ypred[i] = X[i] * localWeight(X[i], X, y, k)
+        theta = localWeight(X[i], X, y, k)
+        ypred[i] = X[i] @ theta
         
     return ypred
 
 
-# Load dataset
-data = pd.read_csv("10-dataset.csv")
+# Dataset
+data = pd.DataFrame({
+    'total_bill':[16.99,10.34,21.01,23.68,24.59,25.29,8.77,26.88,15.04,14.78],
+    'tip':[1.01,1.66,3.50,3.31,3.61,4.71,2.00,3.12,1.96,3.23]
+})
 
-bill = np.array(data['total_bill'])
-tip = np.array(data['tip'])
+bill = data['total_bill'].values
+tip = data['tip'].values
 
-# Preparing data
-mbill = np.mat(bill)
-mtip = np.mat(tip)
+# Add bias column
+X = np.column_stack((np.ones(len(bill)), bill))
+y = tip
 
-m = np.shape(mbill)[1]
-one = np.mat(np.ones(m))
+# Bandwidth
+k = 0.5
 
-X = np.hstack((one.T, mbill.T))
+# Prediction
+ypred = localWeightRegression(X, y, k)
 
-# Set bandwidth k
-ypred = localWeightRegression(X, mtip, 0.5)
-
-# Sorting for plotting
-SortIndex = X[:, 1].argsort(0)
-xsort = X[SortIndex][:, 0]
+# Sort for plotting
+sort_idx = np.argsort(bill)
+Xsort = bill[sort_idx]
+ysort = ypred[sort_idx]
 
 # Plot
-fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
-
-ax.scatter(bill, tip, color='green')
-ax.plot(X[SortIndex][:,1], ypred[SortIndex], color='red', linewidth=3)
-
-plt.xlabel('Total Bill')
-plt.ylabel('Tip')
+plt.scatter(bill, tip)
+plt.plot(Xsort, ysort, linewidth=3)
+plt.xlabel("Total Bill")
+plt.ylabel("Tip")
+plt.title("Locally Weighted Linear Regression")
 plt.show()
